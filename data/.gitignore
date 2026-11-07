@@ -1,0 +1,3 @@
+# Keep local project data out of Git.
+*
+!.gitignore
