@@ -1,0 +1,323 @@
+{
+  "$defs": {
+    "Case": {
+      "additionalProperties": false,
+      "properties": {
+        "case_id": {
+          "pattern": "^[A-Za-z0-9_-]{1,100}$",
+          "title": "Case Id",
+          "type": "string"
+        },
+        "version": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "company": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Company",
+          "type": "string"
+        },
+        "brand": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Brand",
+          "type": "string"
+        },
+        "scene_id": {
+          "pattern": "^[A-Za-z0-9_-]{1,100}$",
+          "title": "Scene Id",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "required_actions": {
+          "items": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Required Actions",
+          "type": "array"
+        },
+        "knowledge_refs": {
+          "items": {
+            "pattern": "^[A-Za-z0-9_-]{1,100}$",
+            "type": "string"
+          },
+          "title": "Knowledge Refs",
+          "type": "array"
+        },
+        "default_channel": {
+          "default": "phone",
+          "enum": [
+            "phone",
+            "written"
+          ],
+          "title": "Default Channel",
+          "type": "string"
+        },
+        "submission_count": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Submission Count",
+          "type": "integer"
+        },
+        "callback_requested": {
+          "default": false,
+          "title": "Callback Requested",
+          "type": "boolean"
+        },
+        "complaint_risk": {
+          "default": false,
+          "title": "Complaint Risk",
+          "type": "boolean"
+        },
+        "reviewed": {
+          "default": false,
+          "title": "Reviewed",
+          "type": "boolean"
+        },
+        "synthetic": {
+          "default": true,
+          "title": "Synthetic",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "case_id",
+        "company",
+        "brand",
+        "scene_id",
+        "reason",
+        "required_actions"
+      ],
+      "title": "Case",
+      "type": "object"
+    },
+    "Outcome": {
+      "additionalProperties": false,
+      "properties": {
+        "case_id": {
+          "pattern": "^[A-Za-z0-9_-]{1,100}$",
+          "title": "Case Id",
+          "type": "string"
+        },
+        "session_id": {
+          "pattern": "^[A-Za-z0-9_-]{1,100}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "identity_status": {
+          "enum": [
+            "unknown",
+            "confirmed",
+            "denied"
+          ],
+          "title": "Identity Status",
+          "type": "string"
+        },
+        "contact_status": {
+          "enum": [
+            "connected",
+            "no_answer",
+            "wrong_person",
+            "declined",
+            "aborted"
+          ],
+          "title": "Contact Status",
+          "type": "string"
+        },
+        "scene_id": {
+          "pattern": "^[A-Za-z0-9_-]{1,100}$",
+          "title": "Scene Id",
+          "type": "string"
+        },
+        "required_actions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Required Actions",
+          "type": "array"
+        },
+        "merchant_response": {
+          "enum": [
+            "will_resubmit",
+            "declined",
+            "needs_human",
+            "unknown"
+          ],
+          "title": "Merchant Response",
+          "type": "string"
+        },
+        "needs_human": {
+          "title": "Needs Human",
+          "type": "boolean"
+        },
+        "knowledge_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Knowledge Refs",
+          "type": "array"
+        },
+        "writeback_status": {
+          "const": "committed",
+          "default": "committed",
+          "title": "Writeback Status",
+          "type": "string"
+        },
+        "operation_id": {
+          "pattern": "^[A-Za-z0-9_-]{1,100}$",
+          "title": "Operation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "case_id",
+        "session_id",
+        "identity_status",
+        "contact_status",
+        "scene_id",
+        "required_actions",
+        "merchant_response",
+        "needs_human",
+        "knowledge_refs",
+        "operation_id"
+      ],
+      "title": "Outcome",
+      "type": "object"
+    },
+    "Stage": {
+      "enum": [
+        "identity",
+        "consent",
+        "explain",
+        "confirm",
+        "closed",
+        "aborted"
+      ],
+      "title": "Stage",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "session_id": {
+      "pattern": "^[A-Za-z0-9_-]{1,100}$",
+      "title": "Session Id",
+      "type": "string"
+    },
+    "trace_id": {
+      "pattern": "^[A-Za-z0-9_-]{1,100}$",
+      "title": "Trace Id",
+      "type": "string"
+    },
+    "case": {
+      "$ref": "#/$defs/Case"
+    },
+    "stage": {
+      "$ref": "#/$defs/Stage",
+      "default": "identity"
+    },
+    "version": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Version",
+      "type": "integer"
+    },
+    "turn_id": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Turn Id",
+      "type": "integer"
+    },
+    "generation_id": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Generation Id",
+      "type": "integer"
+    },
+    "identity_status": {
+      "default": "unknown",
+      "enum": [
+        "unknown",
+        "confirmed",
+        "denied"
+      ],
+      "title": "Identity Status",
+      "type": "string"
+    },
+    "consent": {
+      "default": false,
+      "title": "Consent",
+      "type": "boolean"
+    },
+    "result_confirmed": {
+      "default": false,
+      "title": "Result Confirmed",
+      "type": "boolean"
+    },
+    "retries": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Retries",
+      "type": "integer"
+    },
+    "needs_human": {
+      "default": false,
+      "title": "Needs Human",
+      "type": "boolean"
+    },
+    "last_response": {
+      "default": "",
+      "title": "Last Response",
+      "type": "string"
+    },
+    "outcome": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Outcome"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "created_at": {
+      "title": "Created At",
+      "type": "string"
+    },
+    "ended_at": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ended At"
+    },
+    "manifest": {
+      "additionalProperties": true,
+      "title": "Manifest",
+      "type": "object"
+    }
+  },
+  "required": [
+    "case"
+  ],
+  "title": "Session",
+  "type": "object"
+}

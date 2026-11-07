@@ -1,0 +1,64 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "event_id": {
+      "pattern": "^[A-Za-z0-9_-]{1,100}$",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "event_type": {
+      "title": "Event Type",
+      "type": "string"
+    },
+    "session_id": {
+      "pattern": "^[A-Za-z0-9_-]{1,100}$",
+      "title": "Session Id",
+      "type": "string"
+    },
+    "trace_id": {
+      "pattern": "^[A-Za-z0-9_-]{1,100}$",
+      "title": "Trace Id",
+      "type": "string"
+    },
+    "session_seq": {
+      "minimum": 1,
+      "title": "Session Seq",
+      "type": "integer"
+    },
+    "turn_id": {
+      "minimum": 0,
+      "title": "Turn Id",
+      "type": "integer"
+    },
+    "generation_id": {
+      "minimum": 0,
+      "title": "Generation Id",
+      "type": "integer"
+    },
+    "timestamp_utc": {
+      "title": "Timestamp Utc",
+      "type": "string"
+    },
+    "payload": {
+      "additionalProperties": true,
+      "title": "Payload",
+      "type": "object"
+    }
+  },
+  "required": [
+    "event_type",
+    "session_id",
+    "trace_id",
+    "session_seq",
+    "turn_id",
+    "generation_id"
+  ],
+  "title": "Event",
+  "type": "object"
+}

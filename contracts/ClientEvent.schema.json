@@ -1,0 +1,45 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "pattern": "^[A-Za-z0-9_-]{1,100}$",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "event_type": {
+      "enum": [
+        "playback.started",
+        "playback.stopped",
+        "playback.completed",
+        "speech.started"
+      ],
+      "title": "Event Type",
+      "type": "string"
+    },
+    "generation_id": {
+      "minimum": 0,
+      "title": "Generation Id",
+      "type": "integer"
+    },
+    "client_time_ms": {
+      "minimum": 0,
+      "title": "Client Time Ms",
+      "type": "number"
+    },
+    "played_chars": {
+      "default": 0,
+      "maximum": 4000,
+      "minimum": 0,
+      "title": "Played Chars",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "event_id",
+    "event_type",
+    "generation_id",
+    "client_time_ms"
+  ],
+  "title": "ClientEvent",
+  "type": "object"
+}

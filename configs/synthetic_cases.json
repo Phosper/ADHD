@@ -1,0 +1,14 @@
+[
+  {
+    "case_id": "demo-authorization", "company": "示例商贸公司", "brand": "示例品牌",
+    "scene_id": "authorization-missing", "reason": "授权材料缺少盖章页",
+    "required_actions": ["补齐盖章页并重新提交材料"],
+    "knowledge_refs": ["synthetic-authorization"], "reviewed": true, "synthetic": true
+  },
+  {
+    "case_id": "demo-written", "company": "合成样例公司", "brand": "合成品牌",
+    "scene_id": "written-review", "reason": "需要按书面渠道核对材料",
+    "required_actions": ["在后台查看审核意见"], "default_channel": "written",
+    "reviewed": true, "synthetic": true
+  }
+]
