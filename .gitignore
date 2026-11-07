@@ -1,0 +1,45 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencies and generated outputs
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+node_modules/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+coverage/
+.DS_Store
+Thumbs.db
+
+# Private runtime artifacts; source schemas and documentation stay tracked
+/artifacts/
+/runtime/
+/models/
+/backups/
+/reports/
+*.sqlite
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
+*.log
+*.wav
+*.mp3
+*.flac
+*.safetensors
+*.pt
+*.onnx
+
+# Local multi-worktree development
+/.worktrees/
