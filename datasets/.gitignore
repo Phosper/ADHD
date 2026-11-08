@@ -11,3 +11,4 @@
 *.json
 *.csv
 !catalog.csv
+!link-check-2026-11-09.csv

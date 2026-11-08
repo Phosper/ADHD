@@ -6,7 +6,7 @@ zh-mer2024,MER2024,中文,影视多模态,音频+视频+文本,"5,030 条标注 
 zh-esd,ESD,中文/英文,情感语音朗读,音频,"20 人 × 350 句；29+ 小时","neutral/happy/angry/sad/surprise","Google Drive；需签 License 并发给作者","仅研究（需签 License）","B","https://doi.org/10.1109/ICASSP39728.2021.9413391","https://github.com/HLTSingapore/Emotional-Speech-Data","单人朗读；适合韵律/语速"
 zh-emovie,EMOVIE,普通话,电影语音,音频,"9,724 条","人工情绪标注","官方页 Google Drive 直接下 tar.gz（约 600 MB）","CC BY-NC-SA 2.0","B","https://arxiv.org/abs/2106.09317","https://viem-ccy.github.io/EMOVIE/dataset_release","电影台词；不是对话/客服"
 zh-cseu-bench,CSEU-Bench,中文,语音情绪,音频,"1K–10K 条","83 类心理语言学情绪标签","Hugging Face 直接下载","CC BY 4.0","B","未检索到正式论文","https://github.com/qiuchili/CSEU-Bench","细粒度理解；无对话策略"
-zh-csed,Chinese Speech Emotion Datasets,台湾普通话,语音情绪,音频+频谱图,"652 条","positive/natural/negative","GitHub 直接下载","Apache-2.0","C","http://dl.acm.org/citation.cfm?id=3083220","https://github.com/AkishinoShiame/Chinese-Speech-Emotion-Datasets","样本少、来源混杂"
+zh-csed,Chinese Speech Emotion Datasets,台湾普通话,语音情绪,音频+频谱图,"652 条","positive/natural/negative","GitHub 直接下载","Apache-2.0","C","https://doi.org/10.1145/3083187.3083220","https://github.com/AkishinoShiame/Chinese-Speech-Emotion-Datasets","样本少、来源混杂"
 zh-cheavd,CHEAVD,中文,自然情绪音视频,音频+视频,"论文可查","情绪标注","未找到公开仓库；MER2023 扩展版走 EULA","未确认","C","https://doi.org/10.1109/ICOSP.2014.7015071","","需联系作者/MER2023"
 zh-ch-mead,CH-MEAD,中文,多模态对话情绪,音频+视频,"论文可查","细粒度情绪","未找到公开仓库/HF","未确认","C","https://doi.org/10.1109/APSIPAASC58517.2023.10317512","","需联系作者"
 zh-nnime,NNIME,中文,交互式多模态情绪,音频+视频,"论文可查","情绪标注","未找到公开仓库","未确认","C","https://doi.org/10.1109/ACII.2017.8273615","","需联系作者"

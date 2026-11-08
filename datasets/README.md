@@ -29,6 +29,7 @@
 - [`zh-speech-emotion.md`](zh-speech-emotion.md)：中文带语音情绪语料的详细说明、获取步骤和推荐组合。
 - [`text-support.md`](text-support.md)：ESConv、CPED 等纯文本辅助资源的统计和使用边界。
 - [`github-search-2026-11-09.md`](github-search-2026-11-09.md)：GitHub 检索记录、零结果查询、命中项和限制。
+- [`link-check-2026-11-09.md`](link-check-2026-11-09.md)：全部外部链接的核验结果和失效链接修正记录。
 
 优先级含义：
 
@@ -49,6 +50,7 @@
 - **ESConv**：`ESConv.json` HTTP 200，实测 9,017,487 字节；1,300 段对话、38,365 轮、18,376 条策略标注；`FailedESConv.json` 196 条。
 - **CPED**：三个 CSV 合计 132,762 句、11,835 个对话、303 个唯一 `Speaker` 字符串；仓库没有音频文件。
 - **EmotionTalk / M3ED / MER2023 / MER2024 / ESD / EMOVIE / CSEU-Bench**：2026-11-08 从官方仓库或数据页核对入口、规模、许可和获取方式，细节见 `zh-speech-emotion.md`。
+- **链接核验**：2026-11-09 检查 51 个唯一 URL，51/51 能解析到最终地址；45 个 200、5 个 IEEE 202、1 个 ACM 403（反爬，不是死链）。详见 `link-check-2026-11-09.md`。
 - **未执行**：没有完整下载所有语料；没有验证 gated 申请是否通过；没有对许可做法律意见；没有用这些数据训练或评测模型。
 
 ## 新增数据集的检查清单
