@@ -8,6 +8,7 @@
 - 中文带语音首选 **EmotionTalk + M3ED**；**MER2023 / MER2024** 做鲁棒性和跨域评测；**ESD + EMOVIE** 做声学、韵律和语速；**CSEU-Bench** 做细粒度中文语音情绪理解。
 - **ESConv、CPED 是纯文本**，只能用于策略标签、中文话术和文本情绪辅助；不能当声学语料，也不能用来定语速阈值。
 - JDDC 最贴客服业务，但**没有音频、没有情绪标签**；JDDC 1.0 无官方公开下载，2.1 需单位申请。
+- 2026-11-09 又做了一轮 GitHub 精确检索：仍未发现公开的中文客服情绪对抗语音库；命中的中文客服数据都是文本，详见 [`github-search-2026-11-09.md`](github-search-2026-11-09.md)。
 
 ## 快速选择
 
@@ -27,6 +28,7 @@
 - [`catalog.csv`](catalog.csv)：全部候选的机器可读清单，含语言、模态、规模、标签、获取方式、许可和优先级。
 - [`zh-speech-emotion.md`](zh-speech-emotion.md)：中文带语音情绪语料的详细说明、获取步骤和推荐组合。
 - [`text-support.md`](text-support.md)：ESConv、CPED 等纯文本辅助资源的统计和使用边界。
+- [`github-search-2026-11-09.md`](github-search-2026-11-09.md)：GitHub 检索记录、零结果查询、命中项和限制。
 
 优先级含义：
 

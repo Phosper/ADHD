@@ -58,6 +58,18 @@
 - anger / worried 可做中文文本情绪的少样本和离线评测，但要处理影视域偏移。
 - 不能用于声学情绪或语速训练，不能替代真实客服语音标定。
 
+## 中文客服文本资源（非语音）
+
+2026-11-09 的 GitHub 检索找到几个中文客服对话数据，但**全部是文本，没有音频**，不能计入语音语料：
+
+| 资源 | 规模与标签 | 获取状态 | 用途与限制 |
+| --- | --- | --- | --- |
+| [CCSE-CS](https://github.com/haimianxing/CCSE-CS-Empathetic-Culture-AI) | README 称 9,478 段对话、76,847 轮；4 个行业（电商/银行/电信/医疗）；6 类 18 子策略，含 De-escalation、Boundary Setting、Constructive Redirection | 仓库公开策略本体、生成脚本和评测代码；`data/raw/` 只有 `.gitkeep`，未见公开对话数据或 LICENSE 文件；README 标 MIT、目标 EMNLP 2026 | 最适合借“中文客服降级策略分类”；数据未公开、论文未正式发表，不能当现成训练集 |
+| [CSDS](https://github.com/xiaolinAndy/CSDS) | 中文客服对话摘要数据集；EMNLP 2021 | 仓库含代码和数据处理说明，数据走 Google Drive | 客服对话摘要；不含情绪标签、不含音频 |
+| [Chinese-Ambiguous-Reference](https://github.com/ygan/Chinese-Ambiguous-Reference) | 1,000+ 段中文客服对话，标注澄清问题 | 仓库公开 `All Conversation.json` | 澄清/追问话术参考；不含情绪标签、不含音频 |
+
+结论：这些资源可用于中文客服话术和策略分类，但**不能替代“中文客服情绪对抗语音库”**；截至检索日仍未找到公开可下载的此类语音库。
+
 ## 其他文本参考
 
 | 资源 | 语言/域 | 规模与标签 | 获取与许可 | 用途与限制 |
