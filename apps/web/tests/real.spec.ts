@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-test('four real model speech rounds with browser audio injection', async ({ page }) => {
+test.beforeEach(async ({ page }) => {
   // Synthetic merchant wav is injected into a MediaStream, then encoded as actual WebRTC RTP.
   await page.addInitScript(() => {
     const context = new AudioContext();
@@ -29,6 +29,9 @@ test('four real model speech rounds with browser audio injection', async ({ page
       start.apply(this, args);
     };
   });
+});
+
+test('four real model speech rounds with browser audio injection', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByText('实时语音已就绪')).toBeVisible({timeout:15000});
   await page.getByRole('button', {name:'开始新会话'}).click();
@@ -53,4 +56,29 @@ test('four real model speech rounds with browser audio injection', async ({ page
     label:'synthetic-input WebRTC real models; browser schedule latency, not official acoustic measurement'}, null, 2));
   await page.screenshot({path:'../../runtime/real-browser-complete.png',fullPage:true});
   await page.request.post(`/api/sessions/${sid}/disconnect`,{data:{}});
+});
+
+test('real speech interrupts opening audio without completing old playback or writing a result', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByText('实时语音已就绪')).toBeVisible({timeout:15000});
+  await page.getByRole('button', {name:'开始新会话'}).click();
+  await page.getByRole('button', {name:'接入实时语音'}).click();
+  const sessions = await (await page.request.get('/api/sessions')).json();
+  const sid = sessions[0].session_id;
+  const events = async () => (await (await page.request.get(`/api/sessions/${sid}/events`)).json());
+  await expect.poll(async () => (await events()).some((e:any) => e.event_type === 'playback.started' && e.generation_id === 0), {timeout:30000}).toBe(true);
+  const wav = await readFile(resolve('../../runtime/real-input/0.wav'));
+  await page.evaluate(base64 => (window as any).__say(base64), wav.toString('base64'));
+  await expect.poll(async () => (await events()).some((e:any) => e.event_type === 'playback.stopped' && e.generation_id === 0), {timeout:15000}).toBe(true);
+  await expect.poll(async () => (await (await page.request.get(`/api/sessions/${sid}`)).json()).stage, {timeout:30000}).toBe('consent');
+  await expect.poll(async () => (await events()).some((e:any) => e.event_type === 'playback.completed' && e.generation_id > 0), {timeout:30000}).toBe(true);
+  await page.getByRole('button', {name:'结束会话'}).click();
+  await expect.poll(async () => (await (await page.request.get(`/api/sessions/${sid}`)).json()).stage).toBe('aborted');
+  const session = await (await page.request.get(`/api/sessions/${sid}`)).json();
+  const evidence = await events();
+  expect(session.outcome).toBeNull();
+  expect(evidence.some((e:any) => e.event_type === 'playback.completed' && e.generation_id === 0)).toBe(false);
+  expect(evidence.some((e:any) => e.event_type === 'tool.committed')).toBe(false);
+  await writeFile(resolve(`../../runtime/real-interrupt-${sid}.json`), JSON.stringify({session,events:evidence,
+    label:'Synthetic speech interrupts real model audio; not human/acoustic acceptance'}, null, 2));
 });
