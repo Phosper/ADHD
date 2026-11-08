@@ -16,6 +16,7 @@ Python 3.10—3.13、Node 24、uv 0.11.21。执行 `uv sync --frozen`，在 `app
 - [日志与回退](docs/日志与回退.md)：开发对话记录、运行会话日志、版本恢复。
 - [实施任务](docs/任务看板.md)：按依赖推进，领取时填写实际负责人。
 - [开发日志](docs/devlogs/README.md)：每次开发对话的变更依据与验证记录。
+- [演示与交接](docs/演示与交接.md)：自然语音测试步骤、演示安排和团队接手方法。
 - [架构决策](docs/decisions/0001-module-boundaries.md)：已确定的工程边界。
 
 ## 已确认条件

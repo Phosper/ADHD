@@ -43,6 +43,8 @@
 
 Dockerfile.mock 已提供，当前 Docker 构建未执行；镜像基础标签未冻结 digest，不能标成已验证的容器发布包。使用本机/服务器上述实测环境运行。
 
+2026-11-08 实测本机 Docker Desktop 启动失败：其 Ingest server 无法访问/重命名 sailor-ingest.sock，容器引擎不可连接。未清理用户 Docker 状态或重置环境。构建上下文已排除 vendor、所有本地虚拟环境、模型、原始资料和运行产物。
+
 ## 源码交付与版本追溯
 
 干净 Git 检出中执行 `python -m scripts.package_source runtime/source-<版本>.tar`，得到源码归档和旁置 SHA-256 元数据。解压到新的独立目录，不覆盖运行实例；包内 .source-manifest.json 逐文件绑定提交。运行会话会检查源码变化，不会把父目录 Git 提交冒充当前版本。归档不包含模型、vendor、网页构建产物或私密运行数据，安装和前端构建仍按上述步骤执行。
