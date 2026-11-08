@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './style.css';
+import { VoiceConnection } from './voice';
 
 type Case = { case_id: string; company: string; brand: string; reason: string; default_channel: string; required_actions: string[] };
 type Session = { session_id: string; stage: string; version: number; generation_id: number; turn_id: number; last_response: string; outcome: null | Record<string, unknown>; case: Case };
@@ -22,12 +23,8 @@ function App() {
   const [busy, setBusy] = useState(false);
   const [health, setHealth] = useState({ mode: 'unknown', voice_ready: false });
   const [voice, setVoice] = useState(false);
-  const audio = useRef<HTMLAudioElement>(null);
-  const connection = useRef<RTCPeerConnection | null>(null);
-  const microphone = useRef<MediaStream | null>(null);
-  const current = useRef<Session | null>(null);
+  const connection = useRef<VoiceConnection | null>(null);
   const chat = useRef<HTMLDivElement>(null);
-  current.current = session;
 
   async function api<T>(path: string, body?: unknown, method?: string): Promise<T> {
     const res = await fetch(path, { method: method || (body === undefined ? 'GET' : 'POST'),
@@ -68,35 +65,13 @@ function App() {
 
   function stopAudio() {
     connection.current?.close(); connection.current = null;
-    microphone.current?.getTracks().forEach(t => t.stop()); microphone.current = null;
-    if (audio.current) { audio.current.pause(); audio.current.srcObject = null; }
     setVoice(false);
   }
   async function startVoice(s: Session) {
-    if (!window.isSecureContext || !navigator.mediaDevices) throw new Error('麦克风需要 HTTPS 或本机 localhost 页面。');
-    try {
-      microphone.current = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true }, video: false });
-      const pc = new RTCPeerConnection(); connection.current = pc;
-      microphone.current.getTracks().forEach(track => pc.addTrack(track, microphone.current!));
-      pc.ontrack = e => { if (audio.current) { audio.current.srcObject = e.streams[0] || new MediaStream([e.track]); void audio.current.play().catch(() => setError('请点击播放按钮允许音频播放。')); } };
-      pc.onconnectionstatechange = () => { if (['failed', 'disconnected'].includes(pc.connectionState)) { setError('语音连接中断，请检查网络后重新连接。'); stopAudio(); } };
-      const channel = pc.createDataChannel('pipecat');
-      channel.onmessage = e => {
-        try {
-          const event = JSON.parse(e.data);
-          if (event.type === 'interrupt' && audio.current) { audio.current.muted = true; }
-          if (event.type === 'audio-start' && audio.current) { audio.current.muted = false; }
-        } catch { /* Unrecognized messages never execute actions. */ }
-      };
-      await pc.setLocalDescription(await pc.createOffer());
-      await new Promise<void>((resolve, reject) => {
-        if (pc.iceGatheringState === 'complete') return resolve();
-        const timeout = setTimeout(() => reject(new Error('语音网络协商超时')), 10000);
-        pc.onicegatheringstatechange = () => { if (pc.iceGatheringState === 'complete') { clearTimeout(timeout); resolve(); } };
-      });
-      const answer = await api<RTCSessionDescriptionInit>(`/api/sessions/${s.session_id}/offer`, { sdp: pc.localDescription!.sdp, type: 'offer' });
-      await pc.setRemoteDescription(answer); setVoice(true);
-    } catch (e) { stopAudio(); throw e; }
+    const client = new VoiceConnection(s.session_id, api, message => { setError(message); setVoice(false); });
+    connection.current = client;
+    try { await client.connect(); setVoice(true); }
+    catch (error) { stopAudio(); throw error; }
   }
   const active = session && !['closed', 'aborted'].includes(session.stage);
   const detail = session?.case || cases.find(c => c.case_id === selected);
@@ -122,7 +97,7 @@ function App() {
           <ol className="steps">{steps.map((s, i) => <li key={s} className={session?.stage === s ? 'current' : session && steps.indexOf(session.stage) > i ? 'done' : ''}><span>{i+1}</span>{stages[s]}</li>)}</ol>
           <div className="chat" ref={chat} aria-live="polite">{!session ? <div className="empty"><div className="empty-icon">听</div><h2>准备好，再开始沟通</h2><p>选择一个任务，确认资料后开始会话。<br/>模拟模式用于验证流程，不代表语音验收完成。</p></div> : conversation.map(e => <article className={'bubble ' + (e.event_type === 'response.validated' ? 'assistant' : 'merchant')} key={e.event_id}><small>{e.event_type === 'response.validated' ? '审核助手' : '商家'}<time>{new Date(e.timestamp_utc).toLocaleTimeString('zh-CN')}</time></small><p>{String(e.payload.text)}</p></article>)}</div>
           <div className="composer"><form onSubmit={e => { e.preventDefault(); if (!session || !message.trim()) return; const text = message; void run(async () => { const s = await api<Session>(`/api/sessions/${session.session_id}/turns`, { text, request_id: crypto.randomUUID(), expected_version: session.version }); setMessage(''); await refresh(s); await load(); }); }}><input aria-label="商家回复" placeholder={active ? '输入商家回复，例如“我是负责人”' : '开始会话后输入回复'} value={message} onChange={e => setMessage(e.target.value)} disabled={!active || busy || voice}/><button className="primary" disabled={!active || busy || !message.trim() || voice}>发送</button></form>
-            <div className="call-actions"><button disabled={!active || busy || !health.voice_ready} onClick={() => void run(async () => { if (voice) stopAudio(); else if (session) await startVoice(session); })}>{voice ? '断开麦克风' : '接入实时语音'}</button><span>{session ? `${session.turn_id} 轮对话 · ${stages[session.stage]}` : '尚未开始'}</span><button className="danger" disabled={!active || busy} onClick={() => void run(async () => { stopAudio(); if (session) { await refresh(await api(`/api/sessions/${session.session_id}/end`, {})); await load(); } })}>结束会话</button></div><audio ref={audio} autoPlay controls hidden={!voice}/></div>
+            <div className="call-actions"><button disabled={!active || busy || !health.voice_ready} onClick={() => void run(async () => { if (voice) stopAudio(); else if (session) await startVoice(session); })}>{voice ? '断开麦克风' : '接入实时语音'}</button><span>{session ? `${session.turn_id} 轮对话 · ${stages[session.stage]}` : '尚未开始'}</span><button className="danger" disabled={!active || busy} onClick={() => void run(async () => { stopAudio(); if (session) { await refresh(await api(`/api/sessions/${session.session_id}/end`, {})); await load(); } })}>结束会话</button></div></div>
         </section>
         <aside className="inspection"><section><h2>本次任务</h2>{detail ? <><dl><dt>商家</dt><dd>{detail.company}</dd><dt>品牌</dt><dd>{detail.brand}</dd><dt>审核事项</dt><dd>{detail.reason}</dd></dl><h3>整改要求</h3><ul>{detail.required_actions.map(a => <li key={a}>{a}</li>)}</ul></> : <p>连接后选择任务。</p>}</section>
           <section><h2>结果核验<span className={session?.outcome ? 'success' : 'pending'}>{session?.outcome ? '已回写' : '待完成'}</span></h2>{report ? <ul className="checks">{Object.entries({身份确认: report.checks.identity_confirmed, 沟通意愿: report.checks.consent_confirmed, 结果确认: report.checks.result_confirmed, 回写回执: report.checks.writeback_committed}).map(([k,v]) => <li key={k}><span>{k}</span><b className={v ? 'success' : 'pending'}>{v ? '已确认' : '未确认'}</b></li>)}</ul> : <p>会话开始后展示核验结果。</p>}<p className="muted">未确认的结果不会记为已同意。没有音频测量时，不显示时延成绩。</p></section>

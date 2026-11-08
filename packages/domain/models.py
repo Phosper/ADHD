@@ -145,6 +145,11 @@ class ClientEvent(Contract):
     played_chars: int = Field(default=0, ge=0, le=4000)
 
 
+class VoiceOffer(Contract):
+    sdp: str = Field(min_length=1, max_length=100000)
+    type: Literal["offer"]
+
+
 class Event(Contract):
     schema_version: Literal["1.0"] = "1.0"
     event_id: Identifier = Field(default_factory=new_id)

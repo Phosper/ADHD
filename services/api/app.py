@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from packages.domain.models import (
-    Case, ClientEvent, CreateSession, DomainError, ErrorResponse, Session, UserTurn,
+    Case, ClientEvent, CreateSession, DomainError, ErrorResponse, Session, UserTurn, VoiceOffer,
 )
 from packages.domain.state_machine import advance
 from packages.observability.manifest import ROOT, build_manifest
@@ -33,12 +33,19 @@ def create_app(db_path: str | Path | None = None, token: str | None = None,
                         os.getenv("ZHIYU_LLM_MODEL", "Qwen3-8B"), knowledge_path)
     if mode not in ("mock", "real"):
         raise ValueError("ZHIYU_MODE must be mock or real")
+    voice = None
+    if mode == "real" and os.getenv("ZHIYU_VOICE_ENABLED") == "1":
+        from services.voice.runtime import VoiceManager
+        from services.api.voice_gateway import Gateway
+        voice = VoiceManager(Gateway(store), model)
 
     @asynccontextmanager
     async def lifespan(app):
         if recover:
             store.recover()
         yield
+        if voice:
+            await voice.close()
 
     app = FastAPI(title="智语外呼业务 API", version="0.1.0", lifespan=lifespan)
     app.state.store = store
@@ -56,8 +63,8 @@ def create_app(db_path: str | Path | None = None, token: str | None = None,
             code=exc.code, message=exc.message).model_dump())
 
     @app.get("/health")
-    def health():
-        return {"status": "ok", "mode": mode, "voice_ready": False, "version": "0.1.0"}
+    async def health():
+        return {"status": "ok", "mode": mode, "voice_ready": bool(voice and await voice.ready()), "version": "0.1.0"}
 
     auth = [Depends(authenticate)]
 
@@ -79,6 +86,8 @@ def create_app(db_path: str | Path | None = None, token: str | None = None,
 
     @app.post("/api/sessions/{session_id}/turns", response_model=Session, dependencies=auth)
     async def turn(session_id: str, body: UserTurn):
+        if voice and voice.active and not voice.active.closed and voice.active.sid == session_id:
+            raise DomainError("voice_active", "语音通话中不接受文字轮次，请先断开语音")
         cached = store.cached_turn(session_id, body.request_id, body.model_dump())
         if cached:
             return cached
@@ -101,8 +110,23 @@ def create_app(db_path: str | Path | None = None, token: str | None = None,
         return store.events(session_id, after)
 
     @app.post("/api/sessions/{session_id}/end", response_model=Session, dependencies=auth)
-    def end(session_id: str):
+    async def end(session_id: str):
+        if voice:
+            await voice.close(session_id)
         return store.abort(session_id)
+
+    @app.post("/api/sessions/{session_id}/offer", dependencies=auth)
+    async def offer(session_id: str, body: VoiceOffer):
+        if not voice:
+            raise DomainError("voice_unavailable", "当前未启用真实语音", 503)
+        answer = await voice.offer(session_id, body.sdp)
+        return {"sdp": answer["sdp"], "type": answer["type"]}
+
+    @app.post("/api/sessions/{session_id}/disconnect", dependencies=auth)
+    async def disconnect(session_id: str):
+        if voice:
+            await voice.close(session_id)
+        return store.session(session_id)
 
     @app.get("/api/sessions/{session_id}/report", dependencies=auth)
     def quality(session_id: str):

@@ -1,0 +1,15 @@
+{
+  "version": "dev-1",
+  "split": "development",
+  "data": "synthetic",
+  "cases": [
+    {"id": "complete", "turns": ["我是负责人", "方便，请说", "我会补齐重新提交", "确认"], "result": "will_resubmit", "needs_human": false},
+    {"id": "wrong-person", "turns": ["你打错了"], "result": "unknown", "identity": "denied"},
+    {"id": "refusal", "turns": ["不要再打了"], "result": "declined"},
+    {"id": "callback", "turns": ["现在忙，稍后再说"], "result": "needs_human", "needs_human": true},
+    {"id": "ambiguous", "turns": ["嗯", "不知道", "也许"], "result": "needs_human", "identity": "unknown"},
+    {"id": "no-guarantee", "turns": ["我是负责人", "方便", "能保证通过吗", "我会补齐重新提交"], "result": "will_resubmit", "must_contain": "不能保证"},
+    {"id": "unknown-answer", "turns": ["我是负责人", "方便", "跨境类目具体怎么开通？"], "result": "needs_human"},
+    {"id": "correction", "turns": ["我是负责人", "方便", "我会补齐重新提交", "我说错了", "我会补齐重新提交", "确认"], "result": "will_resubmit"}
+  ]
+}

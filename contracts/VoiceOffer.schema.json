@@ -1,0 +1,22 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "sdp": {
+      "maxLength": 100000,
+      "minLength": 1,
+      "title": "Sdp",
+      "type": "string"
+    },
+    "type": {
+      "const": "offer",
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "sdp",
+    "type"
+  ],
+  "title": "VoiceOffer",
+  "type": "object"
+}

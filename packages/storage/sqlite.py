@@ -98,13 +98,14 @@ class Store:
         db.execute("INSERT INTO sessions VALUES (?,?) ON CONFLICT(id) DO UPDATE SET body=excluded.body",
                    (session.session_id, encode(session)))
 
-    def event(self, db, session: Session, event_type: str, payload: dict, event_id=None):
+    def event(self, db, session: Session, event_type: str, payload: dict, event_id=None, generation_id=None):
         seq = db.execute("SELECT COALESCE(MAX(seq),0)+1 FROM events WHERE session_id=?",
                          (session.session_id,)).fetchone()[0]
         event = Event(event_id=event_id or new_id(), event_type=event_type,
                       session_id=session.session_id, trace_id=session.trace_id,
                       session_seq=seq, turn_id=session.turn_id,
-                      generation_id=session.generation_id, payload=payload)
+                      generation_id=session.generation_id if generation_id is None else generation_id,
+                      payload=payload)
         db.execute("INSERT INTO events VALUES (?,?,?,?)",
                    (event.event_id, session.session_id, seq, encode(event)))
         return event
@@ -219,7 +220,9 @@ class Store:
                 if existing.session_id != session_id or existing.payload.get("client") != incoming.model_dump(mode="json"):
                     raise DomainError("event_conflict", "重复事件内容不一致")
                 return s
-            if incoming.generation_id != s.generation_id:
+            if incoming.generation_id != s.generation_id and not (
+                incoming.event_type == "playback.stopped" and incoming.generation_id < s.generation_id
+            ):
                 raise DomainError("stale_generation", "忽略已经取消的回复事件")
             if incoming.event_type == "speech.started":
                 if s.stage in (Stage.CLOSED, Stage.ABORTED):
@@ -228,7 +231,7 @@ class Store:
                 s.generation_id += 1
                 s.version += 1
             self.event(db, s, incoming.event_type, {"client": incoming.model_dump(mode="json")},
-                       event_id=incoming.event_id)
+                       event_id=incoming.event_id, generation_id=incoming.generation_id)
             self.save(db, s)
             return s
 

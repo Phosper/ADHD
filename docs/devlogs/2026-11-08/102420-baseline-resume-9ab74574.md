@@ -17,6 +17,16 @@
 
 步骤 5：服务器可用磁盘 7.1T、GPU 空闲约 45GB；在独立 .models-env 下载推理依赖。本机独立 .voice 已装 Pipecat 1.15.0，实际媒体链路待验证。未修改其他项目、未停用其他 GPU 任务。
 
+步骤 6：检查点 da5e3b1 保存前述实现。接入 Pipecat + Silero + WebRTC，输出使用带代号 PCM 数据通道，按 ADR 0004 记录取舍。真实 Chrome + Pipecat 的合成音传输测试 1 passed（17.3 秒），证明连接、播放回执、断线保存；测试音来自 fixture，不是 ASR/LLM/TTS 模型验收。
+
+步骤 7：服务器推理基础依赖安装完成（13 分 27 秒下载），公共权重通过 ModelScope 下载。服务器 GitHub 先后出现 HTTP/2 错误与连接超时，本机取得官方 CosyVoice 源码 074ca6dc9e80a2f424f1f74b48bdd7d3fea531cc 和锁定子模块后转存独立 vendor 目录。Whisper 上游构建因 pkg_resources 缺失失败，添加 setuptools 构建约束重新安装，结果待核对。
+
+步骤 8：第二次解析发现 Whisper 20231117 与 torch 2.6 的 Triton 约束冲突；根据官方 setup 改为 Whisper 20240930 后安装成功。实际导入 CosyVoice2/FunASR 成功，CUDA 可用；GPU 空闲 44.6GB（瞬时值）。三模型权重全部下载并产生独立哈希清单，真实加载开始。未将下载完成写成推理通过。
+
+步骤 9：新增 8 个合成开发评测场景（正常、错人、拒绝、回电、含糊、保证通过追问、无依据问题、改口），8/8 通过；仍标 development，不冒充独立验收集。最新后端 38 passed（2.56 秒）、ruff 与前端构建通过。
+
+用户确认：比赛现场访问方式与官方 Mock 接口均未确认，P11 保留外部待办；研发继续。
+
 ## 验证
 
 上述前端构建和服务器测试已执行。浏览器交互、真实语音与 GPU 推理待验证。
