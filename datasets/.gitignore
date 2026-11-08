@@ -1,0 +1,13 @@
+# 原始语料不进入 Git；统一下载到 data/datasets/。
+*.wav
+*.mp3
+*.flac
+*.mp4
+*.mkv
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.json
+*.csv
+!catalog.csv
