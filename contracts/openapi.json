@@ -422,6 +422,71 @@
         }
       }
     },
+    "/api/sessions/{session_id}/no-answer": {
+      "post": {
+        "summary": "No Answer",
+        "operationId": "no_answer_api_sessions__session_id__no_answer_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoAnswer"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/sessions/{session_id}/end": {
       "post": {
         "summary": "End",
@@ -884,6 +949,32 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "NoAnswer": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,100}$",
+            "title": "Request Id"
+          },
+          "expected_version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Version"
+          },
+          "retry_attempt": {
+            "type": "boolean",
+            "title": "Retry Attempt",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request_id",
+          "expected_version"
+        ],
+        "title": "NoAnswer"
+      },
       "Outcome": {
         "properties": {
           "case_id": {
@@ -959,6 +1050,28 @@
             "type": "string",
             "pattern": "^[A-Za-z0-9_-]{1,100}$",
             "title": "Operation Id"
+          },
+          "recommended_channel": {
+            "type": "string",
+            "enum": [
+              "phone",
+              "written",
+              "human"
+            ],
+            "title": "Recommended Channel",
+            "default": "phone"
+          },
+          "followup_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]{1,100}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Followup Id"
           }
         },
         "additionalProperties": false,

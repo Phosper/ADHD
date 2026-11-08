@@ -1,0 +1,13 @@
+.git
+.venv
+.voice
+data
+runtime
+models
+backups
+artifacts
+.env*
+**/node_modules
+**/__pycache__
+**/*.wav
+**/*.sqlite

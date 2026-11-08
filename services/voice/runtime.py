@@ -173,6 +173,7 @@ class VoiceSession:
             async with self.http.stream("POST", self.tts_url + "/speak", json={"text": s.last_response}) as response:
                 response.raise_for_status()
                 rate = int(response.headers["X-Sample-Rate"])
+                source = response.headers.get('X-Audio-Source', 'unspecified')
                 if rate not in (16000, 22050, 24000, 48000):
                     raise ValueError("Unsupported TTS sample rate")
                 pending = b''
@@ -189,7 +190,8 @@ class VoiceSession:
                     count += 1
                     # Bound reliable-channel buffering to avoid seconds of old audio queued.
                     await asyncio.sleep(len(part) / (rate * 2) * .9)
-            self.record("tts.generated", {"generation_id": s.generation_id, "chunks": count})
+            self.record("tts.generated", {"generation_id": s.generation_id, "chunks": count,
+                                         "audio_source": source})
             self.send(type="audio-end", generation_id=s.generation_id, chunks=count)
         except asyncio.CancelledError:
             raise
@@ -199,22 +201,26 @@ class VoiceSession:
     async def fail(self, reason):
         if self.closed:
             return
-        self.record("voice.error", {"code": reason})
-        self.send(type="error", message="语音服务异常，本次已停止，请查看会话记录。")
-        await self.close(reason)
+        try:
+            self.record("voice.error", {"code": reason})
+        finally:
+            self.send(type="error", message="语音服务异常，本次已停止，请查看会话记录。")
+            await self.close(reason)
 
     async def close(self, reason="user_disconnected"):
         if self.closed:
             return
         self.closed = True
         self.epoch += 1
-        self.store.abort(self.sid, reason)
         current = asyncio.current_task()
-        for task in [*self.jobs, self.response_task]:
-            if task and task is not current:
-                task.cancel()
-        await self.http.aclose()
-        await self.conn.disconnect()
+        try:
+            self.store.abort(self.sid, reason)
+        finally:
+            for task in [*self.jobs, self.response_task]:
+                if task and task is not current:
+                    task.cancel()
+            await self.http.aclose()
+            await self.conn.disconnect()
 
 
 class VoiceManager:

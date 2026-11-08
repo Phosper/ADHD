@@ -9,6 +9,7 @@ from packages.domain.models import (
     Case, ClientEvent, DomainError, Event, Outcome, Session, Stage, new_id, utcnow,
 )
 from packages.domain.state_machine import Decision, opening
+from packages.domain.contact_policy import contact_policy
 
 
 def encode(value) -> str:
@@ -166,7 +167,8 @@ class Store:
                 raise DomainError("version_conflict", "会话已变化，请刷新后重试")
             decision = decide(old)
             s = decision.session
-            self.event(db, old, "asr.final" if body.get("source") == "voice" else "user.text",
+            event_kind = {"voice": "asr.final", "contact_event": "contact.no_answer"}.get(body.get("source"), "user.text")
+            self.event(db, old, event_kind,
                        {"text": body["text"], "request_id": request_id})
             self.event(db, s, "state.changed", {"before": old.stage.value, "after": s.stage.value,
                        "previous_version": old.version, "version": s.version})
@@ -188,14 +190,18 @@ class Store:
                                               s.consent and s.result_confirmed):
             raise DomainError("precondition_failed", "业务确认不完整")
         op_id = new_id()
-        contact = {"wrong_person": "wrong_person", "declined": "declined"}.get(reason, "connected")
+        contact = {"wrong_person": "wrong_person", "declined": "declined",
+                   "no_answer": "no_answer", "retry_no_answer": "no_answer"}.get(reason, "connected")
+        decision = contact_policy(s.case, connected=contact != "no_answer", retry_attempt=reason == "retry_no_answer")
+        followup = new_id() if decision.followup or s.needs_human else None
         s.outcome = Outcome(case_id=s.case.case_id, session_id=s.session_id,
                             identity_status=s.identity_status, contact_status=contact,
                             scene_id=s.case.scene_id,
                             required_actions=s.case.required_actions if s.identity_status == "confirmed" else [],
                             merchant_response=reason if reason in ("will_resubmit", "declined", "needs_human") else "unknown",
                             needs_human=s.needs_human, knowledge_refs=s.case.knowledge_refs,
-                            operation_id=op_id)
+                            operation_id=op_id, recommended_channel=decision.channel,
+                            followup_id=followup)
         self.event(db, s, "tool.requested", {"name": "write_outcome", "operation_id": op_id})
         db.execute("INSERT INTO operations VALUES (?,?,?,?)",
                    (op_id, s.session_id, s.case.case_id, encode(s.outcome)))
@@ -203,6 +209,26 @@ class Store:
         db.execute("UPDATE cases SET body=? WHERE id=?", (encode(current), current.case_id))
         self.event(db, s, "tool.committed", {"name": "write_outcome", "operation_id": op_id,
                                           "result": s.outcome.model_dump(mode="json")})
+        if followup:
+            self.event(db, s, "tool.committed", {"name": "create_mock_followup", "operation_id": followup,
+                         "parent_operation": op_id, "status": "pending_human", "actual_call_placed": False})
+
+    def no_answer(self, session_id, body):
+        payload = {**body, "text": "[模拟未接通]", "source": "contact_event"}
+
+        def decide(old):
+            if old.stage != Stage.IDENTITY or old.turn_id:
+                raise DomainError("precondition_failed", "已有沟通记录，不能改记为未接通")
+            s = old.model_copy(deep=True)
+            s.version += 1
+            s.generation_id += 1
+            s.stage = Stage.CLOSED
+            policy = contact_policy(s.case, connected=False, retry_attempt=body['retry_attempt'])
+            s.needs_human = policy.followup
+            s.last_response = "未接通事件已登记；未向真实号码发起外呼。"
+            return Decision(s, s.last_response, "retry_no_answer" if body['retry_attempt'] else "no_answer")
+
+        return self.turn(session_id, body['request_id'], payload, decide)
 
     def operation(self, operation_id):
         with self.connect() as db:

@@ -1,0 +1,26 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "request_id": {
+      "pattern": "^[A-Za-z0-9_-]{1,100}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "expected_version": {
+      "minimum": 0,
+      "title": "Expected Version",
+      "type": "integer"
+    },
+    "retry_attempt": {
+      "default": false,
+      "title": "Retry Attempt",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "request_id",
+    "expected_version"
+  ],
+  "title": "NoAnswer",
+  "type": "object"
+}

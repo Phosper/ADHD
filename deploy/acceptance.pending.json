@@ -1,0 +1,10 @@
+{
+  "independent_business_review": {"passed": false, "artifact": null},
+  "human_voice_three_rounds": {"passed": false, "artifact": null},
+  "acoustic_p50_le_2000ms": {"passed": false, "artifact": null},
+  "no_severe_compliance_violation": {"passed": false, "artifact": null},
+  "approved_competition_network": {"passed": false, "artifact": null},
+  "official_tool_contract_verified": {"passed": false, "artifact": null},
+  "restore_drill": {"passed": true, "artifact": "tests/test_model_and_restore.py"},
+  "clean_source_checkpoint": {"passed": false, "artifact": null}
+}

@@ -27,7 +27,8 @@ def test_model_validates_structured_intent(content):
 
 @pytest.mark.parametrize("content", ['{"kind":"write_database","confidence":1}',
                                     '{"kind":"identity_yes","tool":"close"}',
-                                    '已执行关单', '{"kind":"consent","confidence":2}'])
+                                    '已执行关单', '{"kind":"consent","confidence":2}',
+                                    '{"kind":"result_yes"}'])
 def test_untrusted_model_output_never_reaches_domain(content):
     client = ModelClient("http://model/v1", "Qwen3-8B", transport=httpx.MockTransport(
         lambda request: httpx.Response(200, json={"choices": [{"message": {"content": content}}]})))

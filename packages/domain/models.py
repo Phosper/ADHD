@@ -97,6 +97,8 @@ class Outcome(Contract):
     knowledge_refs: list[str]
     writeback_status: Literal["committed"] = "committed"
     operation_id: Identifier
+    recommended_channel: Literal["phone", "written", "human"] = "phone"
+    followup_id: Identifier | None = None
 
 
 class Session(Contract):
@@ -148,6 +150,12 @@ class ClientEvent(Contract):
 class VoiceOffer(Contract):
     sdp: str = Field(min_length=1, max_length=100000)
     type: Literal["offer"]
+
+
+class NoAnswer(Contract):
+    request_id: Identifier
+    expected_version: int = Field(ge=0)
+    retry_attempt: bool = False
 
 
 class Event(Contract):

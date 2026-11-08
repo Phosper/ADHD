@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from packages.domain.models import (
-    Case, ClientEvent, CreateSession, DomainError, ErrorResponse, Session, UserTurn, VoiceOffer,
+    Case, ClientEvent, CreateSession, DomainError, ErrorResponse, Session, UserTurn, VoiceOffer, NoAnswer,
 )
 from packages.domain.state_machine import advance
 from packages.observability.manifest import ROOT, build_manifest
@@ -104,6 +104,12 @@ def create_app(db_path: str | Path | None = None, token: str | None = None,
     @app.post("/api/sessions/{session_id}/events", response_model=Session, dependencies=auth)
     def client_event(session_id: str, body: ClientEvent):
         return store.client_event(session_id, body)
+
+    @app.post("/api/sessions/{session_id}/no-answer", response_model=Session, dependencies=auth)
+    async def no_answer(session_id: str, body: NoAnswer):
+        if voice and voice.active and not voice.active.closed and voice.active.sid == session_id:
+            raise DomainError("voice_active", "已接通语音不能标记未接通")
+        return store.no_answer(session_id, body.model_dump())
 
     @app.get("/api/sessions/{session_id}/events", dependencies=auth)
     def events(session_id: str, after: int = Query(default=0, ge=0)):

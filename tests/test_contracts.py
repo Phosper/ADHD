@@ -4,10 +4,10 @@ from pathlib import Path
 import jsonschema
 import pytest
 
-from packages.domain.models import ClientEvent, CreateSession, Event, Outcome, Session, UserTurn, VoiceOffer
+from packages.domain.models import ClientEvent, CreateSession, Event, Outcome, Session, UserTurn, VoiceOffer, NoAnswer
 
 
-@pytest.mark.parametrize("model", [ClientEvent, CreateSession, Event, Outcome, Session, UserTurn, VoiceOffer])
+@pytest.mark.parametrize("model", [ClientEvent, CreateSession, Event, Outcome, Session, UserTurn, VoiceOffer, NoAnswer])
 def test_exported_contract_matches_runtime_model(model):
     schema = json.loads((Path("contracts") / f"{model.__name__}.schema.json").read_text(encoding="utf-8"))
     assert schema == model.model_json_schema()

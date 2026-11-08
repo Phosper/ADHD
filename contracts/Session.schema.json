@@ -179,6 +179,29 @@
           "pattern": "^[A-Za-z0-9_-]{1,100}$",
           "title": "Operation Id",
           "type": "string"
+        },
+        "recommended_channel": {
+          "default": "phone",
+          "enum": [
+            "phone",
+            "written",
+            "human"
+          ],
+          "title": "Recommended Channel",
+          "type": "string"
+        },
+        "followup_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9_-]{1,100}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Followup Id"
         }
       },
       "required": [

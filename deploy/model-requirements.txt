@@ -22,3 +22,5 @@ x-transformers==2.11.24
 omegaconf==2.3.0
 wget==3.2
 setuptools==75.8.2
+gdown==5.1.0
+pyworld==0.3.4

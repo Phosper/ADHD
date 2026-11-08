@@ -2,14 +2,14 @@ import json
 import tempfile
 from pathlib import Path
 
-from packages.domain.models import ClientEvent, CreateSession, Event, Outcome, Session, UserTurn, VoiceOffer
+from packages.domain.models import ClientEvent, CreateSession, Event, Outcome, Session, UserTurn, VoiceOffer, NoAnswer
 from services.api.app import create_app
 
 
 def main():
     target = Path("contracts")
     target.mkdir(exist_ok=True)
-    for model in (Event, Outcome, Session, UserTurn, CreateSession, ClientEvent, VoiceOffer):
+    for model in (Event, Outcome, Session, UserTurn, CreateSession, ClientEvent, VoiceOffer, NoAnswer):
         (target / f"{model.__name__}.schema.json").write_text(
             json.dumps(model.model_json_schema(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     scratch = Path("runtime/contract-export")
