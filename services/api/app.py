@@ -16,6 +16,7 @@ from packages.observability.manifest import ROOT, build_manifest
 from packages.observability.report import report
 from packages.storage.sqlite import Store
 from services.api.interpreter import interpret_mock, safe_answer
+from services.api.model_client import ModelClient
 
 
 def create_app(db_path: str | Path | None = None, token: str | None = None,
@@ -26,7 +27,12 @@ def create_app(db_path: str | Path | None = None, token: str | None = None,
     store = Store(db_path)
     store.seed([Case.model_validate(v) for v in json.loads(
         (ROOT / "configs/synthetic_cases.json").read_text(encoding="utf-8"))])
-    manifest = build_manifest(mode)
+    knowledge_path = Path(os.environ["ZHIYU_KNOWLEDGE"]) if os.getenv("ZHIYU_KNOWLEDGE") else None
+    manifest = build_manifest(mode, knowledge_path)
+    model = ModelClient(os.getenv("ZHIYU_LLM_URL", "http://127.0.0.1:18081/v1"),
+                        os.getenv("ZHIYU_LLM_MODEL", "Qwen3-8B"), knowledge_path)
+    if mode not in ("mock", "real"):
+        raise ValueError("ZHIYU_MODE must be mock or real")
 
     @asynccontextmanager
     async def lifespan(app):
@@ -72,9 +78,17 @@ def create_app(db_path: str | Path | None = None, token: str | None = None,
         return store.session(session_id)
 
     @app.post("/api/sessions/{session_id}/turns", response_model=Session, dependencies=auth)
-    def turn(session_id: str, body: UserTurn):
-        if mode != "mock":
-            raise DomainError("model_not_ready", "真实模型适配尚未就绪", 503)
+    async def turn(session_id: str, body: UserTurn):
+        cached = store.cached_turn(session_id, body.request_id, body.model_dump())
+        if cached:
+            return cached
+        s = store.session(session_id)
+        if body.expected_version != s.version:
+            raise DomainError("version_conflict", "会话已变化，请刷新后重试")
+        if mode == "real":
+            intent, answer = await model.interpret(body.text, s)
+            return store.turn(session_id, body.request_id, body.model_dump(),
+                              lambda current: advance(current, intent, answer))
         return store.turn(session_id, body.request_id, body.model_dump(),
                           lambda s: advance(s, interpret_mock(body.text, s), safe_answer(body.text)))
 

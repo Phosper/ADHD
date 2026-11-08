@@ -7,6 +7,11 @@
 
 # Dependencies and generated outputs
 .venv/
+.voice/
+.models-env/
+.core/
+test-results/
+playwright-report/
 venv/
 __pycache__/
 *.py[cod]
