@@ -1,2 +1,0 @@
-# Preserve paper bytes and avoid treating PDF streams as text diffs.
-*.pdf binary
