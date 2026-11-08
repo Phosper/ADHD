@@ -1,6 +1,6 @@
 # 共享契约
 
-状态：规划骨架，尚无可运行实现。
+状态：已实现 JSON Schema/OpenAPI 生成与正反例检查，voice_gateway.py 为语音模块访问业务的共享边界。运行 python -m scripts.export_contracts 更新契约，禁止只改生成文件。
 
 建议负责角色：集成负责人协调，各模块共同评审。实际领取人见 docs/任务看板.md。
 

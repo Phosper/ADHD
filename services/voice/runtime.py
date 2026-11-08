@@ -3,6 +3,7 @@ import asyncio
 import base64
 import os
 import time
+from pathlib import Path
 
 import httpx
 from contracts.voice_gateway import VoiceGateway
@@ -19,6 +20,7 @@ from pipecat.workers.runner import WorkerRunner
 
 from packages.domain.models import DomainError, Stage, new_id
 from packages.domain.state_machine import advance
+from packages.observability.audio_archive import AudioArchive
 
 
 class AudioInput(FrameProcessor):
@@ -42,6 +44,8 @@ class AudioInput(FrameProcessor):
         if frame.sample_rate != 16000 or frame.num_channels != 1:
             await self.owner.fail("unexpected_audio_format")
             return
+        if self.owner.archive:
+            self.owner.archive.append('microphone', frame.audio, 16000)
         state = await self.vad.analyze_audio(frame.audio)
         if not self.speaking:
             self.preroll = (self.preroll + frame.audio)[-9600:]
@@ -83,6 +87,7 @@ class VoiceSession:
         self.audio_queue = asyncio.Queue(maxsize=80)
         self.response_task = None
         self.closed = False
+        self.archive = AudioArchive(Path('runtime/audio'), sid) if os.getenv('ZHIYU_RECORD_AUDIO') == '1' else None
         self.http = httpx.AsyncClient(timeout=30, trust_env=False)
         self.asr_url = os.getenv("ZHIYU_ASR_URL", "http://127.0.0.1:18082")
         self.tts_url = os.getenv("ZHIYU_TTS_URL", "http://127.0.0.1:18083")
@@ -154,7 +159,8 @@ class VoiceSession:
             intent, answer = await self.model.interpret(text, s)
             if epoch != self.epoch or self.closed:
                 return
-            self.record("model.intent", {"kind": intent.kind.value, "confidence": intent.confidence,
+            self.record("intent.validated", {"kind": intent.kind.value, "confidence": intent.confidence,
+                        "pipeline": "model_then_deterministic_guard",
                         "duration_ms": (time.monotonic() - started) * 1000})
             request_id = new_id()
             result = self.store.turn(self.sid, request_id, {"expected_version": s.version,
@@ -185,6 +191,8 @@ class VoiceSession:
                     part, pending = pending[:end], pending[end:]
                     if epoch != self.epoch or self.closed:
                         return
+                    if self.archive:
+                        self.archive.append(f'output-{s.generation_id}', part, rate)
                     self.send(type="audio-chunk", generation_id=s.generation_id, seq=count,
                               sample_rate=rate, pcm=base64.b64encode(part).decode())
                     count += 1
@@ -221,6 +229,8 @@ class VoiceSession:
                     task.cancel()
             await self.http.aclose()
             await self.conn.disconnect()
+            if self.archive:
+                self.archive.close()
 
 
 class VoiceManager:

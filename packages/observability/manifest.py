@@ -35,4 +35,5 @@ def build_manifest(mode: str, knowledge_path: Path | None = None) -> dict:
             "frontend_lock_sha256": file_hash(ROOT / 'apps/web/package-lock.json'),
             "voice_lock_sha256": file_hash(ROOT / 'deploy/voice-windows.lock'),
             "prompt_sha256": file_hash(ROOT / 'services/api/model_client.py'),
+            "intent_guard_sha256": file_hash(ROOT / 'packages/domain/intent_guard.py'),
             "official_evaluation": False}

@@ -1,6 +1,6 @@
 # 开发与运维入口
 
-状态：规划骨架，尚无可运行实现。
+状态：已实现 devlog、verify、doctor、backup、restore、replay、launch、模型下载/预热/监督、小测、源码打包、资料审核与发布证据门禁。部署命令见 deploy/README.md；恢复不覆盖现有文件，发布检查不自动推送或上线。
 
 建议负责角色：后端与集成负责人。实际领取人见 docs/任务看板.md。
 

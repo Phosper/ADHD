@@ -36,6 +36,7 @@
 - 浏览器文字：apps/web 下 `npx playwright test`；合成音传输：`npx playwright test --config playwright.voice.config.ts`。
 - 真实模型合成语音：准备 runtime/real-input/0.wav—3.wav 后执行 `npx playwright test --config playwright.real.config.ts`。这是合成输入联调，不是人声、噪声或官方最终验收。
 - 每通记录在 ZHIYU_DB SQLite 中，页面可导出会话、事件、版本与报告。运行日志/数据库/模型/音频不进入 Git。
+- 经授权测试时可设置 ZHIYU_RECORD_AUDIO=1，录音保存在 runtime/audio/<session_id>，每份有采样率、长度和 SHA-256。输出 PCM 是生成证据，不能替代播放回执。默认关闭录音。
 - 备份：`python -m scripts.backup <当前库> <新备份路径>`；恢复：`python -m scripts.restore <备份> <全新隔离库路径>`。恢复不会覆盖运行库、执行工具或重发回执。
 - 回放：`python -m scripts.replay <数据库> <session_id>`，只读。
 - 代码用新 revert 提交保留审计，模型切换回已锁定文件；数据库与外部工具补偿独立处理。

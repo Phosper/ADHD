@@ -31,6 +31,7 @@ Thumbs.db
 /artifacts/
 /runtime/
 /models/
+/vendor/
 /backups/
 /reports/
 *.sqlite

@@ -5,6 +5,7 @@ from pathlib import Path
 import httpx
 
 from packages.domain.models import DomainError, Intent, KnowledgeEntry, Session
+from packages.domain.intent_guard import guard_intent
 from packages.knowledge.retrieve import Retriever
 from services.api.interpreter import safe_answer
 
@@ -47,6 +48,7 @@ class ModelClient:
         except (httpx.HTTPError, ValueError, KeyError, IndexError, TypeError) as exc:
             raise DomainError("model_unavailable", "模型暂不可用，未提交本轮结果，请重试或转人工", 503) from exc
         intent.query = text
+        intent = guard_intent(text, intent)
         answer = safe_answer(text)
         if not answer and session.identity_status == "confirmed" and session.consent:
             # Explicit scenario whitelist; global top hit may belong to a different rule.

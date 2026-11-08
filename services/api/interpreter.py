@@ -1,6 +1,7 @@
 """Deterministic development interpreter, not a production language model."""
 import re
 from packages.domain.models import Intent, IntentKind, Session, Stage
+from packages.domain.intent_guard import guard_intent
 
 
 def interpret_mock(text: str, session: Session) -> Intent:
@@ -25,7 +26,7 @@ def interpret_mock(text: str, session: Session) -> Intent:
         kind = IntentKind.RESULT_YES
     else:
         kind = IntentKind.UNKNOWN
-    return Intent(kind=kind, query=text)
+    return guard_intent(text, Intent(kind=kind, query=text))
 
 
 def safe_answer(text: str) -> str | None:
