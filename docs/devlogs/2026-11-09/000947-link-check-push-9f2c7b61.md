@@ -54,3 +54,8 @@
 
 - 需要实际下载时，先确认磁盘、HF 账号、Google Drive 权限和百度网盘提取码。
 - gated/CC BY-NC/ND/影视版权数据在比赛或商用前仍需法务复核。
+
+## 推送结果
+
+- `git push -u origin Lruy-work` 成功；新远程分支 `origin/Lruy-work` 指向 `748fe75`。
+- 本地与远程同步，工作区干净；未合并 `main`，未创建 PR。
