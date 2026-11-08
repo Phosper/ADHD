@@ -6,5 +6,5 @@
   "approved_competition_network": {"passed": false, "artifact": null},
   "official_tool_contract_verified": {"passed": false, "artifact": null},
   "restore_drill": {"passed": true, "artifact": "tests/test_model_and_restore.py"},
-  "clean_source_checkpoint": {"passed": false, "artifact": null}
+  "clean_source_checkpoint": {"passed": true, "artifact": "docs/基线自测报告.md#可交接检查点 (cd7eab9; archive SHA-256 recorded)"}
 }
