@@ -1,5 +1,7 @@
 # 评测证据边界
 
+不依赖前端和模型的回写模块验收：`python -m evals.run_writeback`。默认 12 个合成案例，输入为受控意图，复用实际业务 Gateway／状态机／Store，逐轮检查提交及重启回查；输出至 runtime/evals。可用 `--suite` 接同格式数据。这不是 ASR／LLM 准确率或独立 holdout，参见 [独立模块验收](../docs/基线独立模块验收.md)。
+
 运行 `python -m evals.run_text`，输出至 runtime/evals。开发用例只使用合成资料，按最终数据库状态和回执判断，失败不得靠重跑挑选一次成功。当前用例由实现者编写，明确标为 development；不能冒充团队独立冻结的 holdout。
 
 真实模型评测需固定模型文件哈希、依赖、GPU 空闲量、提示词版本、知识来源和网络路径。浏览器传输 fixture 仅验证 WebRTC 管道；真实模型生成的商家语音用于合成端到端实验，仍需人声、噪声、回声与真实校园访问复核。

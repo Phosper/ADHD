@@ -43,6 +43,25 @@ def test_import_missing_visible_main_rejected(tmp_path):
         read_main(path)
 
 
+def test_merged_answer_inherits_only_inside_range_and_keeps_row_channel(tmp_path):
+    path = tmp_path / 'merged-answer.xlsx'
+    workbook(path)
+    book = openpyxl.load_workbook(path)
+    sheet = book['场景汇总']
+    sheet.merge_cells('E2:E3')
+    sheet.append(['品牌', '授权', '确实没有答案', '电话', None])
+    book['电话场景'].sheet_state = 'visible'
+    book.save(path)
+    entries, summary = read_main(path)
+    assert entries[0].answer == entries[1].answer == '请补齐盖章'
+    assert entries[0].channel == 'phone' and entries[1].channel == 'written'
+    assert entries[2].answer == ''
+    assert summary['issues'] == [{'row': 4, 'reason': 'missing_or_invalid_fields'}]
+    assert summary['excluded_sheets'] == [{'name': '电话场景', 'state': 'visible'}]
+    assert entries[1].source.row == 3
+    assert all(e.review_status == 'pending' for e in entries)
+
+
 def test_pending_evidence_not_retrieved():
     e = KnowledgeEntry(entry_id="a", category=["授权"], question="授权书怎么补齐",
                        answer="补齐盖章页", source=Source(file="synthetic", sheet="s", row=1, sha256="0"*64))

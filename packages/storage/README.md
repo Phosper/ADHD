@@ -9,3 +9,9 @@
 对应任务：P05、P10。
 
 目标文件、依赖方向与验收条件以根目录 docs/项目文件规划.md、docs/日志与回退.md、CONTRIBUTING.md 为准。
+
+## 按任务回查回写结果
+
+`Store.case_result(case_id)` 和受认证保护的 `GET /api/cases/{case_id}/result` 返回当前单据版本、任务状态及最新已提交回执。数据从原 operations 表回查，兼容旧库，无需迁移。`processed` 表示已有沟通处理结果，不代表资质审核通过；具体意愿、联系结果和后续动作见 `latest_outcome`。
+
+该查询不会再次执行回写，也不会重发人工跟进事件。原会话和回执接口保持可用。

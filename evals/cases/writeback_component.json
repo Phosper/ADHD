@@ -1,0 +1,92 @@
+{
+  "version": "writeback-component-1",
+  "split": "development",
+  "input_kind": "validated_intents",
+  "synthetic": true,
+  "cases": [
+    {
+      "id": "content-missing",
+      "scene": "synthetic-content-missing",
+      "reason": "合成案件：缺少盖章页",
+      "actions": ["补齐缺失页后重新提交"],
+      "turns": ["identity_yes", "consent", "result_yes", "result_yes"],
+      "expected_stage": "closed",
+      "expected_result": "will_resubmit",
+      "repeat_last": true
+    },
+    {
+      "id": "chain-missing",
+      "scene": "synthetic-chain-missing",
+      "reason": "合成案件：缺少甲方至乙方的授权关系",
+      "actions": ["补齐所缺授权关系证明后重新提交"],
+      "turns": ["identity_yes", "consent", "result_yes", "result_yes"],
+      "expected_stage": "closed",
+      "expected_result": "will_resubmit"
+    },
+    {
+      "id": "scope-mismatch",
+      "scene": "synthetic-scope-mismatch",
+      "reason": "合成案件：申请范围与已提供材料不符",
+      "actions": ["核对并按已审核意见修改申请范围"],
+      "turns": ["identity_yes", "consent", "result_yes", "result_yes"],
+      "expected_stage": "closed",
+      "expected_result": "will_resubmit"
+    },
+    {
+      "id": "acknowledgement-is-not-commitment",
+      "turns": ["identity_yes", "consent", {"kind": "unknown", "text": "知道了，但我还没确定是否补交"}],
+      "expected_stage": "confirm",
+      "expected_result": null
+    },
+    {
+      "id": "correction-clears-confirmation",
+      "turns": ["identity_yes", "consent", "result_yes", {"kind": "correction", "text": "先别记录，我说错了"}],
+      "expected_stage": "explain",
+      "expected_result": null
+    },
+    {
+      "id": "correction-needs-two-new-confirmations",
+      "turns": ["identity_yes", "consent", "result_yes", "correction", "result_yes", "result_yes"],
+      "expected_stage": "closed",
+      "expected_result": "will_resubmit"
+    },
+    {
+      "id": "wrong-person",
+      "turns": ["identity_no"],
+      "expected_stage": "closed",
+      "expected_result": "unknown",
+      "expected_identity": "denied"
+    },
+    {
+      "id": "declined",
+      "turns": ["identity_yes", "refuse"],
+      "expected_stage": "closed",
+      "expected_result": "declined"
+    },
+    {
+      "id": "busy-followup",
+      "turns": ["identity_yes", "busy"],
+      "expected_stage": "closed",
+      "expected_result": "needs_human"
+    },
+    {
+      "id": "explicit-human-request",
+      "turns": ["identity_yes", "consent", "human"],
+      "expected_stage": "closed",
+      "expected_result": "needs_human"
+    },
+    {
+      "id": "low-confidence-does-not-commit",
+      "turns": ["identity_yes", "consent", "result_yes", {"kind": "result_yes", "confidence": 0.5}],
+      "expected_stage": "confirm",
+      "expected_result": null
+    },
+    {
+      "id": "disconnect-before-final-confirmation",
+      "turns": ["identity_yes", "consent", "result_yes"],
+      "abort": true,
+      "expected_stage": "aborted",
+      "expected_result": null
+    }
+  ]
+}

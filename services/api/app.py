@@ -9,7 +9,8 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from packages.domain.models import (
-    Case, ClientEvent, CreateSession, DomainError, ErrorResponse, Session, UserTurn, VoiceOffer, NoAnswer,
+    Case, CaseResult, ClientEvent, CreateSession, DomainError, ErrorResponse, Session,
+    UserTurn, VoiceOffer, NoAnswer,
 )
 from packages.domain.state_machine import advance
 from packages.observability.manifest import ROOT, build_manifest
@@ -71,6 +72,10 @@ def create_app(db_path: str | Path | None = None, token: str | None = None,
     @app.get("/api/cases", response_model=list[Case], dependencies=auth)
     def cases():
         return store.cases()
+
+    @app.get("/api/cases/{case_id}/result", response_model=CaseResult, dependencies=auth)
+    def case_result(case_id: str):
+        return store.case_result(case_id)
 
     @app.get("/api/sessions", response_model=list[Session], dependencies=auth)
     def sessions():

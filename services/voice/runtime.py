@@ -21,6 +21,8 @@ from pipecat.workers.runner import WorkerRunner
 from packages.domain.models import DomainError, Stage, new_id
 from packages.domain.state_machine import advance
 from packages.observability.audio_archive import AudioArchive
+from services.voice.segmentation import SpeechSegmenter
+from services.voice.speech_gate import SpeechStartGate
 
 
 class AudioInput(FrameProcessor):
@@ -30,9 +32,8 @@ class AudioInput(FrameProcessor):
         self.vad = SileroVADAnalyzer(sample_rate=16000,
                                    params=VADParams(start_secs=.12, stop_secs=.35))
         self.vad.set_sample_rate(16000)
-        self.speaking = False
-        self.preroll = b''
-        self.buffer = b''
+        self.segmenter = SpeechSegmenter(SpeechStartGate.from_env())
+        self.input_closed = False
         self.stream_id = ''
         self.seq = 0
 
@@ -41,34 +42,33 @@ class AudioInput(FrameProcessor):
         if not isinstance(frame, InputAudioRawFrame):
             await self.push_frame(frame, direction)
             return
+        if self.input_closed or self.owner.closed:
+            return
         if frame.sample_rate != 16000 or frame.num_channels != 1:
             await self.owner.fail("unexpected_audio_format")
             return
         if self.owner.archive:
             self.owner.archive.append('microphone', frame.audio, 16000)
         state = await self.vad.analyze_audio(frame.audio)
-        if not self.speaking:
-            self.preroll = (self.preroll + frame.audio)[-9600:]
-            if state == VADState.SPEAKING:
-                if self.owner.store.session(self.owner.sid).stage in (Stage.CLOSED, Stage.ABORTED):
-                    return
-                await self.owner.interrupt()
-                self.speaking = True
-                self.buffer, self.preroll = self.preroll, b''
-                self.stream_id, self.seq = new_id(), 0
-        else:
-            self.buffer += frame.audio
-        if self.speaking:
-            while len(self.buffer) >= 19200:
-                self.enqueue(self.buffer[:19200], False)
-                self.buffer = self.buffer[19200:]
-            if state == VADState.QUIET:
-                self.enqueue(self.buffer, True)
-                self.buffer, self.speaking = b'', False
-                self.owner.record("speech.ended", {"stream_id": self.stream_id,
-                                  "measurement": "server_vad_endpoint"})
-            elif self.seq >= 50:
-                await self.owner.fail("utterance_too_long")
+        update = self.segmenter.feed(frame.audio, speaking=state == VADState.SPEAKING,
+                                     quiet=state == VADState.QUIET)
+        if update.started:
+            if self.owner.store.session(self.owner.sid).stage in (Stage.CLOSED, Stage.ABORTED):
+                self.input_closed = True
+                return
+            await self.owner.interrupt()
+            self.owner.record("speech.confirmed", {
+                "confirm_ms": self.segmenter.gate.confirm_ms,
+                "min_dbfs": self.segmenter.gate.min_dbfs,
+                "measurement": "vad_and_pcm_energy"})
+            self.stream_id, self.seq = new_id(), 0
+        for chunk in update.chunks:
+            self.enqueue(chunk.pcm, chunk.final)
+        if update.ended:
+            self.owner.record("speech.ended", {"stream_id": self.stream_id,
+                              "measurement": "server_vad_endpoint"})
+        elif update.too_long:
+            await self.owner.fail("utterance_too_long")
 
     def enqueue(self, pcm, final):
         self.owner.audio_queue.put_nowait((self.owner.epoch, self.stream_id, self.seq, pcm, final))

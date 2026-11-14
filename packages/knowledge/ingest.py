@@ -37,7 +37,7 @@ def read_main(path: Path) -> tuple[list[KnowledgeEntry], dict]:
                 continue
             category = [str(cell_value(sheet, row, c) or "").strip() for c in (1, 2, 3)]
             channel = {"电话": "phone", "京麦驳回": "written"}.get(sheet.cell(row, 4).value, "unknown")
-            answer = str(sheet.cell(row, 5).value or "").strip()
+            answer = str(cell_value(sheet, row, 5) or "").strip()
             if not answer or not all(category) or channel == "unknown":
                 issues.append({"row": row, "reason": "missing_or_invalid_fields"})
             entries.append(KnowledgeEntry(entry_id=f"main-{row}", category=category,

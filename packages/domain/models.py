@@ -101,6 +101,13 @@ class Outcome(Contract):
     followup_id: Identifier | None = None
 
 
+class CaseResult(Contract):
+    case_id: Identifier
+    case_version: int = Field(ge=1)
+    task_status: Literal["pending", "processed", "needs_human"]
+    latest_outcome: Outcome | None = None
+
+
 class Session(Contract):
     session_id: Identifier = Field(default_factory=new_id)
     trace_id: Identifier = Field(default_factory=new_id)

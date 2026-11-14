@@ -71,6 +71,61 @@
         }
       }
     },
+    "/api/cases/{case_id}/result": {
+      "get": {
+        "summary": "Case Result",
+        "operationId": "case_result_api_cases__case_id__result_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/sessions": {
       "get": {
         "summary": "Sessions",
@@ -869,6 +924,47 @@
           "required_actions"
         ],
         "title": "Case"
+      },
+      "CaseResult": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,100}$",
+            "title": "Case Id"
+          },
+          "case_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Case Version"
+          },
+          "task_status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processed",
+              "needs_human"
+            ],
+            "title": "Task Status"
+          },
+          "latest_outcome": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Outcome"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "case_id",
+          "case_version",
+          "task_status"
+        ],
+        "title": "CaseResult"
       },
       "ClientEvent": {
         "properties": {

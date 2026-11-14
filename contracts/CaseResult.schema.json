@@ -1,0 +1,160 @@
+{
+  "$defs": {
+    "Outcome": {
+      "additionalProperties": false,
+      "properties": {
+        "case_id": {
+          "pattern": "^[A-Za-z0-9_-]{1,100}$",
+          "title": "Case Id",
+          "type": "string"
+        },
+        "session_id": {
+          "pattern": "^[A-Za-z0-9_-]{1,100}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "identity_status": {
+          "enum": [
+            "unknown",
+            "confirmed",
+            "denied"
+          ],
+          "title": "Identity Status",
+          "type": "string"
+        },
+        "contact_status": {
+          "enum": [
+            "connected",
+            "no_answer",
+            "wrong_person",
+            "declined",
+            "aborted"
+          ],
+          "title": "Contact Status",
+          "type": "string"
+        },
+        "scene_id": {
+          "pattern": "^[A-Za-z0-9_-]{1,100}$",
+          "title": "Scene Id",
+          "type": "string"
+        },
+        "required_actions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Required Actions",
+          "type": "array"
+        },
+        "merchant_response": {
+          "enum": [
+            "will_resubmit",
+            "declined",
+            "needs_human",
+            "unknown"
+          ],
+          "title": "Merchant Response",
+          "type": "string"
+        },
+        "needs_human": {
+          "title": "Needs Human",
+          "type": "boolean"
+        },
+        "knowledge_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Knowledge Refs",
+          "type": "array"
+        },
+        "writeback_status": {
+          "const": "committed",
+          "default": "committed",
+          "title": "Writeback Status",
+          "type": "string"
+        },
+        "operation_id": {
+          "pattern": "^[A-Za-z0-9_-]{1,100}$",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "recommended_channel": {
+          "default": "phone",
+          "enum": [
+            "phone",
+            "written",
+            "human"
+          ],
+          "title": "Recommended Channel",
+          "type": "string"
+        },
+        "followup_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9_-]{1,100}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Followup Id"
+        }
+      },
+      "required": [
+        "case_id",
+        "session_id",
+        "identity_status",
+        "contact_status",
+        "scene_id",
+        "required_actions",
+        "merchant_response",
+        "needs_human",
+        "knowledge_refs",
+        "operation_id"
+      ],
+      "title": "Outcome",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "case_id": {
+      "pattern": "^[A-Za-z0-9_-]{1,100}$",
+      "title": "Case Id",
+      "type": "string"
+    },
+    "case_version": {
+      "minimum": 1,
+      "title": "Case Version",
+      "type": "integer"
+    },
+    "task_status": {
+      "enum": [
+        "pending",
+        "processed",
+        "needs_human"
+      ],
+      "title": "Task Status",
+      "type": "string"
+    },
+    "latest_outcome": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Outcome"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "case_id",
+    "case_version",
+    "task_status"
+  ],
+  "title": "CaseResult",
+  "type": "object"
+}

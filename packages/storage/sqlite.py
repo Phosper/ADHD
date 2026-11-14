@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Callable
 
 from packages.domain.models import (
-    Case, ClientEvent, DomainError, Event, Outcome, Session, Stage, new_id, utcnow,
+    Case, CaseResult, ClientEvent, DomainError, Event, Outcome, Session, Stage, new_id, utcnow,
 )
 from packages.domain.state_machine import Decision, opening
 from packages.domain.contact_policy import contact_policy
@@ -78,6 +78,22 @@ class Store:
     def cases(self) -> list[Case]:
         with self.connect() as db:
             return [Case.model_validate_json(r[0]) for r in db.execute("SELECT body FROM cases")]
+
+    def case_result(self, case_id: str) -> CaseResult:
+        with self.connect() as db:
+            # Read the case version and its receipt from the same SQLite snapshot.
+            db.execute("BEGIN")
+            row = db.execute("SELECT body FROM cases WHERE id=?", (case_id,)).fetchone()
+            if row is None:
+                raise DomainError("case_not_found", "单据不存在", 404)
+            case = Case.model_validate_json(row[0])
+            row = db.execute("SELECT body FROM operations WHERE case_id=? ORDER BY rowid DESC LIMIT 1",
+                             (case_id,)).fetchone()
+            outcome = Outcome.model_validate_json(row[0]) if row else None
+            status = "needs_human" if outcome and outcome.needs_human else (
+                "processed" if outcome else "pending")
+            return CaseResult(case_id=case.case_id, case_version=case.version,
+                              task_status=status, latest_outcome=outcome)
 
     def _session(self, db, session_id: str) -> Session:
         row = db.execute("SELECT body FROM sessions WHERE id=?", (session_id,)).fetchone()
